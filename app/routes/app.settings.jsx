@@ -1,26 +1,26 @@
-import { useState } from 'react';
-import { useLoaderData, useSubmit } from "@remix-run/react";
-import { json } from "@remix-run/node";
+import { useState } from "react";
+import { useLoaderData, useSubmit } from "react-router"; 
+// 1. LOADER: Runs when the page loads to fetch initial data
 
 export const loader = async ({ request }) => {
-  // Simulate fetching settings data from a database
   let settingsData = {
     name: "My App",
     description: "A simple React app"
   };
-  return json({ settingsData });
+  return Response.json({ settingsData }); 
 };
 
+// 2. ACTION: Runs when you click Save
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const name = formData.get("name");
   const description = formData.get("description");
   
   console.log("DATA RECEIVED IN ACTION:", { name, description });
-
-  return json({ success: true });
+  return Response.json({ success: true }); 
 };
 
+// 3. COMPONENT: What the user sees
 export default function SettingsPage() {
   const { settingsData } = useLoaderData();
   const [formstate, setFormState] = useState(settingsData);
@@ -39,7 +39,6 @@ export default function SettingsPage() {
     <s-page>
       <div style={{ display: 'flex', gap: '16px' }}>
         
-        {/* LEFT COLUMN */}
         <div style={{ flex: '2', minWidth: '200px' }}>
           <s-block-stack gap="200">
             <s-text as="h2" variant="headingMd">
