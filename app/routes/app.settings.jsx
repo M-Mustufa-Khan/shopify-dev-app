@@ -1,26 +1,40 @@
 import { useState } from "react";
 import { useLoaderData, useSubmit } from "react-router"; 
-// 1. LOADER: Runs when the page loads to fetch initial data
+import prisma from "../db.server";
 
 export const loader = async ({ request }) => {
-  let settingsData = {
-    name: "My App",
-    description: "A simple React app"
-  };
+  let settingsData = await prisma.appSettings.findFirst();
+
+  if (!settingsData) {
+    settingsData = { name: "My App", description: "A simple React app" };
+  }
+
+  console.log("DATA FETCHED IN LOADER:", settingsData);
   return Response.json({ settingsData }); 
 };
 
-// 2. ACTION: Runs when you click Save
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const name = formData.get("name");
   const description = formData.get("description");
   
-  console.log("DATA RECEIVED IN ACTION:", { name, description });
+  const existing = await prisma.appSettings.findFirst();
+
+  if (existing) {
+    await prisma.appSettings.update({
+      where: { id: existing.id },
+      data: { name, description },
+    });
+  } else {
+    await prisma.appSettings.create({
+      data: { name, description },
+    });
+  }
+
+  console.log("DATA SAVED IN ACTION:", { name, description });
   return Response.json({ success: true }); 
 };
 
-// 3. COMPONENT: What the user sees
 export default function SettingsPage() {
   const { settingsData } = useLoaderData();
   const [formstate, setFormState] = useState(settingsData);
@@ -31,7 +45,6 @@ export default function SettingsPage() {
     const formData = new FormData();
     formData.append("name", formstate.name);
     formData.append("description", formstate.description);
-
     submit(formData, { method: "post" });
   };
 
@@ -44,7 +57,6 @@ export default function SettingsPage() {
             <s-text as="h2" variant="headingMd">
               Settings
             </s-text>
-            <br />
             <s-text as="p" variant="bodyMd">
               Update app settings and preferences.
             </s-text>
