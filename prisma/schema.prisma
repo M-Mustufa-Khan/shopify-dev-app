@@ -39,3 +39,13 @@ model AppSettings {
   name        String
   description String
 }
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  productId String
+  title     String
+  handle    String
+  image     String?
+  price     Float
+  createdAt DateTime @default(now())
+}

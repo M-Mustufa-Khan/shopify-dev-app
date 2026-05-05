@@ -1,0 +1,89 @@
+<div style="padding: 15px 0;">
+  <button
+    id="add-to-wishlist-btn"
+    data-product-id="{{ product.id }}"
+    data-title="{{ product.title | escape }}"
+    data-handle="{{ product.handle }}"
+    data-image="{{ product.featured_image | image_url: 'medium' }}"
+    data-price="{{ product.price | money_without_currency | remove: ',' }}"
+    style="
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.2s;
+    "
+  >
+    <span style="color: #ccc; font-size: 22px;">♡</span>
+    Add to Wishlist
+  </button>
+</div>
+
+<script>
+  document.getElementById('add-to-wishlist-btn').addEventListener('click', async function () {
+    const btn = this;
+
+    // Disable button and show loading state
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    btn.querySelector('span').innerText = '⏳';
+
+    // Grab the data from the data- attributes
+    const data = new URLSearchParams({
+      productId: btn.dataset.productId,
+      title: btn.dataset.title,
+      handle: btn.dataset.handle,
+      image: btn.dataset.image,
+      price: btn.dataset.price,
+    });
+
+    try {
+      // Send data to our App Proxy route!
+      const response = await fetch('/apps/api/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: data.toString(),
+      });
+      console.log('Response from server:', response);
+      if (response.ok) {
+        const heart = btn.querySelector('span');
+
+        heart.style.color = 'red';
+        heart.innerText = '♥';
+
+        btn.childNodes[1].textContent = ' Added to Wishlist!';
+
+        btn.style.borderColor = 'red';
+      } else {
+        throw new Error('Network response was not ok');
+      }
+    } catch (error) {
+      console.log('Error adding to wishlist:', error);
+      alert('Failed to add to wishlist.');
+      btn.querySelector('span').innerText = '♡';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Wishlist Button",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "Add to Wishlist"
+    }
+  ]
+}
+{% endschema %}
